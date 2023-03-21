@@ -10,6 +10,7 @@ from tkinter import filedialog, messagebox
 # Define constants
 ITERATIONS = 100000
 LENGTH = 32
+SALT_FILE = 'salt.txt'
 
 class App:
     def __init__(self, master):
@@ -74,7 +75,7 @@ class App:
                 f.write(encrypted_data)
 
             # Write salt to file
-            with open('salt.txt', 'wb') as f:
+            with open(SALT_FILE, 'wb') as f:
                 f.write(salt)
 
             messagebox.showinfo("Success", "File encrypted successfully.")
@@ -82,7 +83,7 @@ class App:
         except FileNotFoundError:
             messagebox.showerror("Error", "File not found.")
         except Exception as e:
-            messagebox.showerror("Error", "Unable to encrypt file.")
+            messagebox.showerror("Error", "Unable to encrypt file. " + str(e))
 
     def decrypt(self):
         # Get passphrase from user
@@ -90,7 +91,7 @@ class App:
 
         # Use passphrase to generate key
         try:
-            with open('salt.txt', 'rb') as f:
+            with open(SALT_FILE, 'rb') as f:
                 salt = f.read()
 
             kdf = PBKDF2HMAC(
@@ -134,8 +135,8 @@ class App:
 
         except FileNotFoundError:
             messagebox.showerror("Error", "File not found.")
-        except:
-            messagebox.showerror("Error", "Unable to decrypt file.")
+        except Exception as e:
+            messagebox.showerror("Error", "Unable to decrypt file. " + str(e))
 
     def execute(self):
         choice = self.var.get()
