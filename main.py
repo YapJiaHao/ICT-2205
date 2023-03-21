@@ -6,11 +6,13 @@ from cryptography.hazmat.backends import default_backend
 from base64 import urlsafe_b64encode
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import hashlib
 
 # Define constants
 ITERATIONS = 100000
 LENGTH = 32
-SALT_FILE = 'salt.txt'
+SECKEY = "2205"
+#SALT_FILE = 'salt.txt'
 
 class App:
     def __init__(self, master):
@@ -57,7 +59,6 @@ class App:
             messagebox.showerror("Error", "Incorrect passphrase.")
             return
 
-
         # Get file to encrypt/decrypt from user
         if self.var.get() == "encrypt":
             filename = filedialog.askopenfilename()
@@ -74,8 +75,17 @@ class App:
             with open(filename, 'wb') as f:
                 f.write(encrypted_data)
 
+            sha256_hash = hashlib.sha256()
+            with open(filename, "rb") as f:
+                for byte_block in iter(lambda: f.read(4096),b""):
+                    sha256_hash.update(byte_block)
+            filesha = sha256_hash.hexdigest()
+            filesha = filesha + SECKEY
+            filesha = hashlib.sha256(filesha.encode('utf-8'))
+            filesha = filesha.hexdigest()
+
             # Write salt to file
-            with open(SALT_FILE, 'wb') as f:
+            with open("res\\" + filesha, 'wb') as f:
                 f.write(salt)
 
             messagebox.showinfo("Success", "File encrypted successfully.")
@@ -89,9 +99,29 @@ class App:
         # Get passphrase from user
         passphrase = self.entry_passphrase.get()
 
+        # Get file to encrypt/decrypt from user
+        if self.var.get() == "decrypt":
+            filename = filedialog.askopenfilename()
+            if not filename:
+                return
+        
+        sha256_hash = hashlib.sha256()
+        with open(filename, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
+        filesha = sha256_hash.hexdigest()
+        filesha = filesha + SECKEY
+        filesha = hashlib.sha256(filesha.encode('utf-8'))
+        filesha = filesha.hexdigest()
+
+        filepath = os.path.join("res\\", filesha)
+        if os.path.isfile(filepath) == False:
+            messagebox.showerror("Error", "Unable to decrypt file.")
+            exit()
+
         # Use passphrase to generate key
         try:
-            with open(SALT_FILE, 'rb') as f:
+            with open("res\\" + filesha, 'rb') as f:
                 salt = f.read()
 
             kdf = PBKDF2HMAC(
@@ -115,12 +145,6 @@ class App:
             messagebox.showerror("Error", "Incorrect passphrase.")
             return
 
-        # Get file to encrypt/decrypt from user
-        if self.var.get() == "decrypt":
-            filename = filedialog.askopenfilename()
-            if not filename:
-                return
-
         # Decrypt file
         try:
             with open(filename, 'rb') as f:
@@ -132,6 +156,7 @@ class App:
                 f.write(decrypted_data)
 
             messagebox.showinfo("Success", "File decrypted successfully.")
+            os.remove(filepath)
 
         except FileNotFoundError:
             messagebox.showerror("Error", "File not found.")
