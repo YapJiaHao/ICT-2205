@@ -25,17 +25,10 @@ class App:
         self.entry_passphrase = tk.Entry(master, show="*")
         self.entry_passphrase.grid(row=0, column=1, padx=5, pady=5)
 
-        self.var = tk.StringVar(value="encrypt")
-        self.radio_encrypt = tk.Radiobutton(master, text="Encrypt", variable=self.var, value="encrypt")
-        self.radio_encrypt.grid(row=1, column=0, padx=5, pady=5)
-
-        self.radio_decrypt = tk.Radiobutton(master, text="Decrypt", variable=self.var, value="decrypt")
-        self.radio_decrypt.grid(row=1, column=1, padx=5, pady=5)
-
         self.button_execute = tk.Button(master, text="Execute", command=self.execute)
         self.button_execute.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
-    def encrypt(self):
+    def encrypt(self, filename):
         # Get passphrase from user
         passphrase = self.entry_passphrase.get()
 
@@ -58,12 +51,6 @@ class App:
         except:
             messagebox.showerror("Error", "Incorrect passphrase.")
             return
-
-        # Get file to encrypt/decrypt from user
-        if self.var.get() == "encrypt":
-            filename = filedialog.askopenfilename()
-            if not filename:
-                return
 
         # Encrypt file
         try:
@@ -95,15 +82,9 @@ class App:
         except Exception as e:
             messagebox.showerror("Error", "Unable to encrypt file. " + str(e))
 
-    def decrypt(self):
+    def decrypt(self, filename):
         # Get passphrase from user
         passphrase = self.entry_passphrase.get()
-
-        # Get file to encrypt/decrypt from user
-        if self.var.get() == "decrypt":
-            filename = filedialog.askopenfilename()
-            if not filename:
-                return
         
         sha256_hash = hashlib.sha256()
         with open(filename, "rb") as f:
@@ -164,11 +145,26 @@ class App:
             messagebox.showerror("Error", "Unable to decrypt file. " + str(e))
 
     def execute(self):
-        choice = self.var.get()
-        if choice == "encrypt":
-            self.encrypt()
-        elif choice == "decrypt":
-            self.decrypt()
+
+        filename = filedialog.askopenfilename()
+        if not filename:
+            return
+        
+        sha256_hash = hashlib.sha256()
+        with open(filename, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
+        filesha = sha256_hash.hexdigest()
+        filesha = filesha + SECKEY
+        filesha = hashlib.sha256(filesha.encode('utf-8'))
+        filesha = filesha.hexdigest()
+
+        filepath = os.path.join("res\\", filesha)
+        
+        if os.path.isfile(filepath) == False:
+            self.encrypt(filename)
+        else:
+            self.decrypt(filename)
 
 
 root = tk.Tk()
