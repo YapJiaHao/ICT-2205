@@ -294,6 +294,8 @@ class App:
                 self.encrypt(filename)
             else:
                 self.decrypt(filename)
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Select a valid file")
         except Exception as e:
             messagebox.showerror("Error", "START_ENCRYPT: Unable to process file. " + str(e))
 
