@@ -1,7 +1,7 @@
 import os
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.hashes import SHA256
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.backends import default_backend
 from base64 import urlsafe_b64encode
 import tkinter as tk
@@ -9,10 +9,9 @@ from tkinter import filedialog, messagebox
 import hashlib
 
 # Define constants
-ITERATIONS = 100000
+ITERATIONS = 16384
 LENGTH = 32
 SECKEY = "2205"
-#SALT_FILE = 'salt.txt'
 
 class App:
     def __init__(self, master):
@@ -34,11 +33,14 @@ class App:
 
         # Use passphrase to generate key
         salt = os.urandom(16)
-        kdf = PBKDF2HMAC(
-            algorithm=SHA256(),
-            length=LENGTH,
+
+        # Derive a key using the Scrypt key derivation function
+        kdf = Scrypt(
             salt=salt,
-            iterations=ITERATIONS,
+            length=LENGTH,
+            n=ITERATIONS,
+            r=8,
+            p=1,
             backend=default_backend()
         )
         key = kdf.derive(passphrase.encode())
@@ -105,11 +107,12 @@ class App:
             with open("res\\" + filesha, 'rb') as f:
                 salt = f.read()
 
-            kdf = PBKDF2HMAC(
-                algorithm=SHA256(),
-                length=LENGTH,
+            kdf = Scrypt(
                 salt=salt,
-                iterations=ITERATIONS,
+                length=LENGTH,
+                n=ITERATIONS,
+                r=8,
+                p=1,
                 backend=default_backend()
             )
             key = kdf.derive(passphrase.encode())
