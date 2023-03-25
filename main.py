@@ -23,6 +23,7 @@ POOKI = "res\\pooki.pk1"
 class App:
     def __init__(self, master):
         self.file_name = tk.StringVar()
+        self.pass_phrase = tk.StringVar()
         self.master = master
         master.title("File Encryption/Decryption")
         self.failed_attempts = self.load_failed_attempts()
@@ -32,6 +33,7 @@ class App:
 
         self.entry_passphrase = tk.Entry(master, show="*")
         self.entry_passphrase.grid(row=0, column=2, padx=5, pady=5, sticky="W")
+        self.pass_phrase.set(self.entry_passphrase.get())
 
         self.button_execute = tk.Button(master, text="Execute", command=self.execute)
         self.button_execute.grid(row=2, column=1, columnspan=2, padx=5, pady=5, sticky="WE")
@@ -255,8 +257,12 @@ class App:
 
             self.file_select_label = tk.Label(self.master, textvariable=self.file_name)
             self.file_select_label.grid(row=0, column=2, padx=5, pady=5, sticky="W")
+
+            self.encrypt_button = tk.Button(self.master, text="Lock/Unlock", command=self.start_encrypt)
+            self.encrypt_button.grid(row=3,column=1, columnspan=2, padx=5, pady=5, sticky="WE")
+
         except Exception as e:
-            messagebox.showerror("Error", "Unable to process file. " + str(e))
+            messagebox.showerror("Error", "EXECUTE: Unable to process file. " + str(e))
 
     def file_open_encryption(self):
         # Open folder to select file
@@ -289,7 +295,7 @@ class App:
             else:
                 self.decrypt(filename)
         except Exception as e:
-            messagebox.showerror("Error", "Unable to process file. " + str(e))
+            messagebox.showerror("Error", "START_ENCRYPT: Unable to process file. " + str(e))
 
 
 root = tk.Tk()
