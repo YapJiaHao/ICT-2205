@@ -22,23 +22,19 @@ POOKI = "res\\pooki.pk1"
 
 class App:
     def __init__(self, master):
-        self.file_name = tk.StringVar()
         self.master = master
         master.title("File Encryption/Decryption")
         self.failed_attempts = self.load_failed_attempts()
 
         self.label_passphrase = tk.Label(master, text="Passphrase:")
-        self.label_passphrase.grid(row=0, column=1, padx=5, pady=5, sticky="E")
+        self.label_passphrase.grid(row=0, column=0, padx=5, pady=5)
 
         self.entry_passphrase = tk.Entry(master, show="*")
-        self.entry_passphrase.grid(row=0, column=2, padx=5, pady=5, sticky="W")
+        self.entry_passphrase.grid(row=0, column=1, padx=5, pady=5)
 
         self.button_execute = tk.Button(master, text="Execute", command=self.execute)
-        self.button_execute.grid(row=2, column=1, columnspan=2, padx=5, pady=5, sticky="WE")
 
-        # Add column weights to center the label and the button
-        master.columnconfigure(0, weight=1)
-        master.columnconfigure(3, weight=1)
+        self.button_execute.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
     def connect_otp(self, passphrase):
         hash_object = hashlib.sha256(passphrase.encode('utf-8'))
@@ -240,37 +236,12 @@ class App:
             self.display_qrcode()
             if not self.verify_otp():
                 return
-            
-            # hide existing widgets once entered otp
-            self.entry_passphrase.grid_remove()
-            self.button_execute.grid_remove()
-            self.label_passphrase.grid_remove()
 
-            # create new widgets
-            self.file_button = tk.Button(self.master, text="Select File", command=self.file_open_encryption)
-            self.file_button.grid(row=2, column=1, columnspan=2, padx=5, pady=5, sticky="WE")
+            # Open folder to select file
+            filename = filedialog.askopenfilename()
+            if not filename:
+                return
 
-            self.file_label = tk.Label(self.master, text="File Selected:")
-            self.file_label.grid(row=0, column=1, padx=5, pady=5, sticky="E")
-
-            self.file_select_label = tk.Label(self.master, textvariable=self.file_name)
-            self.file_select_label.grid(row=0, column=2, padx=5, pady=5, sticky="W")
-        except Exception as e:
-            messagebox.showerror("Error", "Unable to process file. " + str(e))
-
-    def file_open_encryption(self):
-        # Open folder to select file
-        filename = filedialog.askopenfilename()
-        if not filename:
-            return
-        self.file_name.set(filename)    
-        # self.file_label.config(text=self.file_name.get())
-        
-        print(self.file_name.get())
-
-    def start_encrypt(self):
-        filename = self.file_name.get()
-        try:
             sha256_hash = hashlib.sha256()
             with open(filename, "rb") as f:
                 for byte_block in iter(lambda: f.read(4096),b""):
@@ -293,7 +264,6 @@ class App:
 
 
 root = tk.Tk()
-root.geometry("500x400")
 app = App(root)
 root.protocol("WM_DELETE_WINDOW", lambda: sys.exit()) # Add this line to stop the system after closing the program
 root.mainloop()
