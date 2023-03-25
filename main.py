@@ -15,7 +15,7 @@ import sys
 from PIL import Image, ImageTk
 
 # Define constants
-ITERATIONS = 16384
+ITERATIONS = 2097152 #16384
 LENGTH = 32
 SECKEY = "2205"
 POOKI = "res\\pooki.pk1"
