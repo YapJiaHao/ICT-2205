@@ -6,6 +6,7 @@ from base64 import urlsafe_b64encode
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import hashlib
+import datetime
 
 # Define constants
 ITERATIONS = 16384
@@ -68,12 +69,14 @@ class App:
                 for byte_block in iter(lambda: f.read(4096),b""):
                     sha256_hash.update(byte_block)
             filesha = sha256_hash.hexdigest()
-            filesha = filesha + SECKEY
+            creTime = os.path.getctime(filename)
+            creDate = str(int((datetime.datetime.fromtimestamp(creTime) - datetime.datetime(1970, 1, 1)).total_seconds()))
+            filesha = filesha + creDate + SECKEY
             filesha = hashlib.sha256(filesha.encode('utf-8'))
             filesha = filesha.hexdigest()
 
             # Write salt to file
-            with open("res\\" + filesha, 'wb') as f:
+            with open("res\\" + filesha.upper(), 'wb') as f:
                 f.write(salt)
 
             messagebox.showinfo("Success", "File encrypted successfully.")
@@ -92,11 +95,13 @@ class App:
             for byte_block in iter(lambda: f.read(4096),b""):
                 sha256_hash.update(byte_block)
         filesha = sha256_hash.hexdigest()
-        filesha = filesha + SECKEY
+        creTime = os.path.getctime(filename)
+        creDate = str(int((datetime.datetime.fromtimestamp(creTime) - datetime.datetime(1970, 1, 1)).total_seconds()))
+        filesha = filesha + creDate + SECKEY
         filesha = hashlib.sha256(filesha.encode('utf-8'))
         filesha = filesha.hexdigest()
 
-        filepath = os.path.join("res\\", filesha)
+        filepath = os.path.join("res\\", filesha.upper())
         if os.path.isfile(filepath) == False:
             messagebox.showerror("Error", "Unable to decrypt file.")
             exit()
@@ -147,7 +152,7 @@ class App:
             messagebox.showerror("Error", "Unable to decrypt file. " + str(e))
 
     def execute(self):
-
+        
         filename = filedialog.askopenfilename()
         if not filename:
             return
@@ -157,11 +162,13 @@ class App:
             for byte_block in iter(lambda: f.read(4096),b""):
                 sha256_hash.update(byte_block)
         filesha = sha256_hash.hexdigest()
-        filesha = filesha + SECKEY
+        creTime = os.path.getctime(filename)
+        creDate = str(int((datetime.datetime.fromtimestamp(creTime) - datetime.datetime(1970, 1, 1)).total_seconds()))
+        filesha = filesha + creDate + SECKEY
         filesha = hashlib.sha256(filesha.encode('utf-8'))
         filesha = filesha.hexdigest()
 
-        filepath = os.path.join("res\\", filesha)
+        filepath = os.path.join("res\\", filesha.upper())
         
         if os.path.isfile(filepath) == False:
             self.encrypt(filename)
