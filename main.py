@@ -152,28 +152,36 @@ class App:
             messagebox.showerror("Error", "Unable to decrypt file. " + str(e))
 
     def execute(self):
-        
-        filename = filedialog.askopenfilename()
-        if not filename:
-            return
-        
-        sha256_hash = hashlib.sha256()
-        with open(filename, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096),b""):
-                sha256_hash.update(byte_block)
-        filesha = sha256_hash.hexdigest()
-        creTime = os.path.getctime(filename)
-        creDate = str(int((datetime.datetime.fromtimestamp(creTime) - datetime.datetime(1970, 1, 1)).total_seconds()))
-        filesha = filesha + creDate + SECKEY
-        filesha = hashlib.sha256(filesha.encode('utf-8'))
-        filesha = filesha.hexdigest()
+        try:
+            # Open folder to select file
+            filename = filedialog.askopenfilename()
+            if not filename:
+                return
 
-        filepath = os.path.join("res\\", filesha.upper())
-        
-        if os.path.isfile(filepath) == False:
-            self.encrypt(filename)
-        else:
-            self.decrypt(filename)
+            passphrase = self.entry_passphrase.get()
+            if not passphrase:
+                messagebox.showerror("Error", "Please enter a passphrase.")
+                return
+
+            sha256_hash = hashlib.sha256()
+            with open(filename, "rb") as f:
+                for byte_block in iter(lambda: f.read(4096),b""):
+                    sha256_hash.update(byte_block)
+            filesha = sha256_hash.hexdigest()
+            creTime = os.path.getctime(filename)
+            creDate = str(int((datetime.datetime.fromtimestamp(creTime) - datetime.datetime(1970, 1, 1)).total_seconds()))
+            filesha = filesha + creDate + SECKEY
+            filesha = hashlib.sha256(filesha.encode('utf-8'))
+            filesha = filesha.hexdigest()
+
+            filepath = os.path.join("res\\", filesha.upper())
+
+            if os.path.isfile(filepath) == False:
+                self.encrypt(filename)
+            else:
+                self.decrypt(filename)
+        except Exception as e:
+            messagebox.showerror("Error", "Unable to process file. " + str(e))
 
 
 root = tk.Tk()
