@@ -1,6 +1,5 @@
 import os
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.backends import default_backend
 from base64 import urlsafe_b64encode
 import tkinter as tk
@@ -18,7 +17,7 @@ from PIL import Image, ImageTk
 ITERATIONS = 2097152 #16384
 LENGTH = 32
 SECKEY = "2205"
-POOKI = "res\\pooki.pk1"
+POOKI = os.path.join("res", "pooki.pk1")
 
 class App:
     def __init__(self, master):
@@ -82,13 +81,21 @@ class App:
 
     def load_failed_attempts(self):
         if os.path.exists(POOKI):
-            with open(POOKI, "rb") as f:
-                return pickle.load(f)
+            try:
+                with open(POOKI, "rb") as f:
+                    return pickle.load(f)
+            except Exception as e:
+                messagebox.showerror("Error", f"Unable to load failed attempts: {str(e)}")
+                return {}
         return {}
 
+
     def save_failed_attempts(self):
-        with open(POOKI, "wb") as f:
-            pickle.dump(self.failed_attempts, f)
+        try:
+            with open(POOKI, "wb") as f:
+                pickle.dump(self.failed_attempts, f)
+        except Exception as e:
+            messagebox.showerror("Error", f"Unable to save failed attempts: {str(e)}")
 
     def encrypt(self, filename):
         # Get passphrase from user
@@ -303,5 +310,5 @@ class App:
 root = tk.Tk()
 root.geometry("500x400")
 app = App(root)
-root.protocol("WM_DELETE_WINDOW", lambda: sys.exit()) # Add this line to stop the system after closing the program
+root.protocol("WM_DELETE_WINDOW", root.quit) # Add this line to stop the system after closing the program
 root.mainloop()
