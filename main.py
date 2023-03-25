@@ -11,6 +11,7 @@ import pickle
 import base64
 import qrcode
 import pyotp
+import sys
 from PIL import Image, ImageTk
 
 # Define constants
@@ -264,4 +265,5 @@ class App:
 
 root = tk.Tk()
 app = App(root)
+root.protocol("WM_DELETE_WINDOW", lambda: sys.exit()) # Add this line to stop the system after closing the program
 root.mainloop()
