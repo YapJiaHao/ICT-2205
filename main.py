@@ -4,10 +4,14 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.backends import default_backend
 from base64 import urlsafe_b64encode
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 import hashlib
 import datetime
 import pickle
+import base64
+import qrcode
+import pyotp
+from PIL import Image, ImageTk
 
 # Define constants
 ITERATIONS = 16384
@@ -28,7 +32,46 @@ class App:
         self.entry_passphrase.grid(row=0, column=1, padx=5, pady=5)
 
         self.button_execute = tk.Button(master, text="Execute", command=self.execute)
+
         self.button_execute.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+
+    def connect_otp(self, passphrase):
+        hash_object = hashlib.sha256(passphrase.encode('utf-8'))
+        hash_bytes = hash_object.digest()
+        otp_key = base64.b32encode(hash_bytes).decode('utf-8')
+        uri = pyotp.totp.TOTP(otp_key).provisioning_uri(name="user", issuer_name="ICT2205")
+        qrcode.make(uri).save("totp.png")
+
+    def display_qrcode(self):
+        self.image_window = tk.Toplevel(self.master)
+        image = Image.open("totp.png")
+        photo = ImageTk.PhotoImage(image)
+        label = tk.Label(self.image_window, image=photo)
+        label.image = photo
+        label.pack()
+        button_next = tk.Button(self.image_window, text="Next", command=self.verify_otp)
+        button_next.pack()
+
+    def verify_otp(self):
+        passphrase = self.entry_passphrase.get()
+        hash_object = hashlib.sha256(passphrase.encode('utf-8'))
+        hash_bytes = hash_object.digest()
+        otp_key = base64.b32encode(hash_bytes).decode('utf-8')
+        totp = pyotp.TOTP(otp_key)
+
+        while True:
+            root = tk.Tk()
+            root.withdraw()
+            otp = simpledialog.askstring("OTP", "Please enter the OTP:")
+            if otp is None:
+                root.destroy()
+                return False
+            elif totp.verify(otp):
+                os.remove("totp.png")
+                self.image_window.destroy()
+                return True
+            else:
+                messagebox.showerror("Error", "Incorrect OTP, please try again.")
 
     def load_failed_attempts(self):
         if os.path.exists(POOKI):
@@ -187,7 +230,12 @@ class App:
             if not passphrase:
                 messagebox.showerror("Error", "Please enter a passphrase.")
                 return
-            
+
+            self.connect_otp(passphrase)
+            self.display_qrcode()
+            if not self.verify_otp():
+                return
+
             # Open folder to select file
             filename = filedialog.askopenfilename()
             if not filename:
