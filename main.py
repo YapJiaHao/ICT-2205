@@ -1,9 +1,10 @@
 import os
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from tkinter import filedialog, messagebox, simpledialog
 from base64 import urlsafe_b64encode
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
 import hashlib
 import datetime
 import pickle
