@@ -10,6 +10,7 @@ import datetime
 import pickle
 import socket
 import threading
+
 # Define constants
 ITERATIONS = 2097152 #16384
 LENGTH = 32
@@ -46,8 +47,6 @@ class App:
         start_conn_thread = threading.Thread(target=self.start_conn)
         start_conn_thread.start()
 
-
-
     def validate_passphrase(self, passphrase):
         # Check length
         if len(passphrase) < 8:
@@ -76,7 +75,6 @@ class App:
                 messagebox.showerror("Error", f"Unable to load failed attempts: {str(e)}")
                 return {}
         return {}
-
 
     def save_failed_attempts(self):
         try:
@@ -284,10 +282,7 @@ class App:
         filename = filedialog.askopenfilename()
         if not filename:
             return
-        self.file_name.set(filename)    
-        # self.file_label.config(text=self.file_name.get())
-        
-        print(self.file_name.get())
+        self.file_name.set(filename)
 
     def start_encrypt(self):
         filename = self.file_name.get()
@@ -321,11 +316,10 @@ class App:
             s.bind((host, port))
             s.settimeout(60)  # set a timeout of 60 seconds
             s.listen(2)
-            print("PersonA: Listening for incoming connections...")
 
             try:
                 conn, addr = s.accept()
-                print("PersonA: Connected to PersonB")
+                # Successfully Connect
                 self.conn = conn
                 receive_thread = threading.Thread(target=self.receive_file(conn))
                 receive_thread.start()
@@ -333,9 +327,7 @@ class App:
                 conn.settimeout(None)  # disable the timeout on the connection socket
 
             except socket.timeout:
-                print("PersonA: Connection timed out")
-
-            s.close()  # close the server socket
+                s.close()  # close the server socket
 
     def receive_file(self, conn):
         while True:
@@ -355,7 +347,6 @@ class App:
                             f.write(filedata[:-len(b"END_OF_FILE")])
                             break
                         f.write(filedata); f.flush()
-                    print("PersonA: File received from PersonB and saved as", filename)
                     f.close()
 
     def send_file(self):
@@ -381,7 +372,6 @@ class App:
                     break
                 conn.sendall(filedata)
                 f.flush()
-            print("PersonA: File sent to PersonB")
 
         salt_file = self.check_encryption()
 
@@ -397,8 +387,6 @@ class App:
                     break
                 conn.sendall(filedata)
                 f.flush()
-            print("PersonA: File sent to PersonB")
-
 
 root = tk.Tk()
 root.geometry("500x400")

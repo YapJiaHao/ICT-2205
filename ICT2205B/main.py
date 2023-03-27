@@ -10,6 +10,7 @@ import datetime
 import pickle
 import socket
 import threading
+
 # Define constants
 ITERATIONS = 2097152 #16384
 LENGTH = 32
@@ -46,8 +47,6 @@ class App:
         start_conn_thread = threading.Thread(target=self.start_conn)
         start_conn_thread.start()
 
-
-
     def validate_passphrase(self, passphrase):
         # Check length
         if len(passphrase) < 8:
@@ -76,7 +75,6 @@ class App:
                 messagebox.showerror("Error", f"Unable to load failed attempts: {str(e)}")
                 return {}
         return {}
-
 
     def save_failed_attempts(self):
         try:
@@ -319,11 +317,9 @@ class App:
 
             s = socket.socket()
             s.connect((host, port))
-            s.settimeout(60)  # set a timeout of 60 seconds
 
             try:
                 conn, addr = s.accept()
-                print("PersonB: Connected to PersonA")
                 self.conn = conn
                 receive_thread = threading.Thread(target=self.receive_file(conn))
                 receive_thread.start()
@@ -331,9 +327,7 @@ class App:
                 conn.settimeout(None)  # disable the timeout on the connection socket
 
             except socket.timeout:
-                print("PersonB: Connection timed out")
-
-            s.close()  # close the server socket
+                s.close()  # close the server socket
 
     def receive_file(self, conn):
         while True:
@@ -353,7 +347,6 @@ class App:
                             f.write(filedata[:-len(b"END_OF_FILE")])
                             break
                         f.write(filedata); f.flush()
-                    print("PersonB: File received from PersonA and saved as", filename)
                     f.close()
 
     def send_file(self):
@@ -379,7 +372,6 @@ class App:
                     break
                 conn.sendall(filedata)
                 f.flush()
-            print("PersonB: File sent to PersonA")
 
         salt_file = self.check_encryption()
 
@@ -395,7 +387,6 @@ class App:
                     break
                 conn.sendall(filedata)
                 f.flush()
-            print("PersonB: File sent to PersonA")
 
 
 root = tk.Tk()
