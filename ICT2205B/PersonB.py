@@ -43,7 +43,7 @@ while True:
         while True:
             filedata = f.read(1024)
             if not filedata:
-                conn.sendall("END_OF_FILE".encode())
+                s.sendall("END_OF_FILE".encode())
                 break
             s.sendall(filedata)
             f.flush()
