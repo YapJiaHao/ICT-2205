@@ -318,14 +318,12 @@ class App:
             port = 5000
 
             s = socket.socket()
-            s.bind((host, port))
+            s.connect((host, port))
             s.settimeout(60)  # set a timeout of 60 seconds
-            s.listen(2)
-            print("PersonA: Listening for incoming connections...")
 
             try:
                 conn, addr = s.accept()
-                print("PersonA: Connected to PersonB")
+                print("PersonB: Connected to PersonA")
                 self.conn = conn
                 receive_thread = threading.Thread(target=self.receive_file(conn))
                 receive_thread.start()
@@ -333,7 +331,7 @@ class App:
                 conn.settimeout(None)  # disable the timeout on the connection socket
 
             except socket.timeout:
-                print("PersonA: Connection timed out")
+                print("PersonB: Connection timed out")
 
             s.close()  # close the server socket
 
@@ -355,7 +353,7 @@ class App:
                             f.write(filedata[:-len(b"END_OF_FILE")])
                             break
                         f.write(filedata); f.flush()
-                    print("PersonA: File received from PersonB and saved as", filename)
+                    print("PersonB: File received from PersonA and saved as", filename)
                     f.close()
 
     def send_file(self):
@@ -381,7 +379,7 @@ class App:
                     break
                 conn.sendall(filedata)
                 f.flush()
-            print("PersonA: File sent to PersonB")
+            print("PersonB: File sent to PersonA")
 
         salt_file = self.check_encryption()
 
@@ -397,7 +395,7 @@ class App:
                     break
                 conn.sendall(filedata)
                 f.flush()
-            print("PersonA: File sent to PersonB")
+            print("PersonB: File sent to PersonA")
 
 
 root = tk.Tk()
