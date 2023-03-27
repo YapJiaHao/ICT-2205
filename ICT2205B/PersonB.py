@@ -32,19 +32,3 @@ def receive_file():
 
 receive_thread = threading.Thread(target=receive_file)
 receive_thread.start()
-
-while True:
-    filename = input("PersonB: Enter filename to send: ")
-    with open(filename, 'rb') as f:
-        s.sendall("SEND_FILE".encode())
-        filename_size = str(len(filename)).ljust(1024)
-        s.sendall(filename_size.encode())
-        s.sendall(filename.encode())
-        while True:
-            filedata = f.read(1024)
-            if not filedata:
-                s.sendall("END_OF_FILE".encode())
-                break
-            s.sendall(filedata)
-            f.flush()
-        print("PersonB: File sent to PersonA")

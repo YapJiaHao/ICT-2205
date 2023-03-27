@@ -12,10 +12,11 @@ import socket
 import threading
 
 # Define constants
-ITERATIONS = 2097152 #16384
+ITERATIONS = 2097152  # 16384
 LENGTH = 32
 SECKEY = "2205"
 PICKLE = os.path.join("res", "pickle.pk1")
+
 
 class App:
     def __init__(self, master):
@@ -122,7 +123,7 @@ class App:
 
             sha256_hash = hashlib.sha256()
             with open(filename, "rb") as f:
-                for byte_block in iter(lambda: f.read(4096),b""):
+                for byte_block in iter(lambda: f.read(4096), b""):
                     sha256_hash.update(byte_block)
             filesha = sha256_hash.hexdigest()
             filesha = filesha + SECKEY
@@ -144,10 +145,10 @@ class App:
     def decrypt(self, filename):
         # Get passphrase from user
         passphrase = self.entry_passphrase.get()
-        
+
         sha256_hash = hashlib.sha256()
         with open(filename, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096),b""):
+            for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)
         filesha = sha256_hash.hexdigest()
         filesha = filesha + SECKEY
@@ -250,9 +251,10 @@ class App:
                 return
             # Check if passphrase meet password complexity requirement
             if not self.validate_passphrase(passphrase):
-                messagebox.showerror("Error", "Invalid passphrase. Please make sure your passphrase meets the following requirements:\n- At least 8 characters long\n- Contains at least one uppercase letter\n- Contains at least one lowercase letter\n- Contains at least one number\n- Contains at least one special character from the following list: !@#$%^&*()_+-=[]{}|;:,.<>/? ")
+                messagebox.showerror("Error",
+                                     "Invalid passphrase. Please make sure your passphrase meets the following requirements:\n- At least 8 characters long\n- Contains at least one uppercase letter\n- Contains at least one lowercase letter\n- Contains at least one number\n- Contains at least one special character from the following list: !@#$%^&*()_+-=[]{}|;:,.<>/? ")
                 return
-            
+
             # hide existing widgets once entered otp
             self.entry_passphrase.grid_remove()
             self.button_execute.grid_remove()
@@ -269,7 +271,7 @@ class App:
             self.file_select_label.grid(row=0, column=2, padx=5, pady=5, sticky="W")
 
             self.encrypt_button = tk.Button(self.master, text="Lock/Unlock", command=self.start_encrypt)
-            self.encrypt_button.grid(row=3,column=1, columnspan=2, padx=5, pady=5, sticky="WE")
+            self.encrypt_button.grid(row=3, column=1, columnspan=2, padx=5, pady=5, sticky="WE")
 
             self.send_file = tk.Button(self.master, text="Send", command=self.send_file)
             self.send_file.grid(row=6, column=1, columnspan=2, padx=5, pady=5, sticky="WE")
@@ -282,17 +284,14 @@ class App:
         filename = filedialog.askopenfilename()
         if not filename:
             return
-        self.file_name.set(filename)    
-        # self.file_label.config(text=self.file_name.get())
-        
-        print(self.file_name.get())
+        self.file_name.set(filename)
 
     def start_encrypt(self):
         filename = self.file_name.get()
         try:
             sha256_hash = hashlib.sha256()
             with open(filename, "rb") as f:
-                for byte_block in iter(lambda: f.read(4096),b""):
+                for byte_block in iter(lambda: f.read(4096), b""):
                     sha256_hash.update(byte_block)
             filesha = sha256_hash.hexdigest()
             filesha = filesha + SECKEY
@@ -316,10 +315,13 @@ class App:
             port = 5000
 
             s = socket.socket()
-            s.connect((host, port))
+            s.bind((host, port))
+            s.settimeout(60)  # set a timeout of 60 seconds
+            s.listen(2)
 
             try:
                 conn, addr = s.accept()
+                # Successfully Connect
                 self.conn = conn
                 receive_thread = threading.Thread(target=self.receive_file(conn))
                 receive_thread.start()
@@ -346,7 +348,8 @@ class App:
                         if filedata.endswith(b"END_OF_FILE"):
                             f.write(filedata[:-len(b"END_OF_FILE")])
                             break
-                        f.write(filedata); f.flush()
+                        f.write(filedata);
+                        f.flush()
                     f.close()
 
     def send_file(self):
@@ -354,12 +357,12 @@ class App:
 
         conn = self.conn
         # Check for encryption (if salt exists)
-   
+
         salt_file_check = self.check_encryption()
 
         if os.path.isfile(salt_file_check) == False:
             self.encrypt(self.file_name.get())
-    
+
         with open(self.file_name.get(), 'rb') as f:
             conn.sendall("SEND_FILE".encode())
             filename_size = str(len(filename)).ljust(1024)
@@ -367,7 +370,7 @@ class App:
             conn.sendall(filename.encode())
             while True:
                 filedata = f.read(1024)
-                if not filedata: 
+                if not filedata:
                     conn.sendall("END_OF_FILE".encode())
                     break
                 conn.sendall(filedata)
@@ -392,5 +395,5 @@ class App:
 root = tk.Tk()
 root.geometry("500x400")
 app = App(root)
-root.protocol("WM_DELETE_WINDOW", root.quit) # Add this line to stop the system after closing the program
+root.protocol("WM_DELETE_WINDOW", root.quit)  # Add this line to stop the system after closing the program
 root.mainloop()
