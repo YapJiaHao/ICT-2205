@@ -8,11 +8,6 @@ import tkinter as tk
 import hashlib
 import datetime
 import pickle
-import base64
-import qrcode
-import pyotp
-import sys
-from PIL import Image, ImageTk
 
 # Define constants
 ITERATIONS = 2097152 #16384
@@ -60,44 +55,6 @@ class App:
         if not any(char in special_chars for char in passphrase):
             return False
         return True
-
-    def connect_otp(self, passphrase):
-        hash_object = hashlib.sha256(passphrase.encode('utf-8'))
-        hash_bytes = hash_object.digest()
-        otp_key = base64.b32encode(hash_bytes).decode('utf-8')
-        uri = pyotp.totp.TOTP(otp_key).provisioning_uri(name="user", issuer_name="ICT2205")
-        qrcode.make(uri).save("totp.png")
-
-    def display_qrcode(self):
-        self.image_window = tk.Toplevel(self.master)
-        image = Image.open("totp.png")
-        photo = ImageTk.PhotoImage(image)
-        label = tk.Label(self.image_window, image=photo)
-        label.image = photo
-        label.pack()
-        button_next = tk.Button(self.image_window, text="Next", command=self.verify_otp)
-        button_next.pack()
-
-    def verify_otp(self):
-        passphrase = self.entry_passphrase.get()
-        hash_object = hashlib.sha256(passphrase.encode('utf-8'))
-        hash_bytes = hash_object.digest()
-        otp_key = base64.b32encode(hash_bytes).decode('utf-8')
-        totp = pyotp.TOTP(otp_key)
-
-        while True:
-            root = tk.Tk()
-            root.withdraw()
-            otp = simpledialog.askstring("OTP", "Please enter the OTP:")
-            if otp is None:
-                root.destroy()
-                return False
-            elif totp.verify(otp):
-                os.remove("totp.png")
-                self.image_window.destroy()
-                return True
-            else:
-                messagebox.showerror("Error", "Incorrect OTP, please try again.")
 
     def load_failed_attempts(self):
         if os.path.exists(PICKLE):
@@ -267,11 +224,6 @@ class App:
             # Check if passphrase meet password complexity requirement
             if not self.validate_passphrase(passphrase):
                 messagebox.showerror("Error", "Invalid passphrase. Please make sure your passphrase meets the following requirements:\n- At least 8 characters long\n- Contains at least one uppercase letter\n- Contains at least one lowercase letter\n- Contains at least one number\n- Contains at least one special character from the following list: !@#$%^&*()_+-=[]{}|;:,.<>/? ")
-                return
-
-            self.connect_otp(passphrase)
-            self.display_qrcode()
-            if not self.verify_otp():
                 return
             
             # hide existing widgets once entered otp
