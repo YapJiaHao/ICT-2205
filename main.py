@@ -18,7 +18,7 @@ from PIL import Image, ImageTk
 ITERATIONS = 2097152 #16384
 LENGTH = 32
 SECKEY = "2205"
-POOKI = os.path.join("res", "pooki.pk1")
+PICKLE = os.path.join("res", "pickle.pk1")
 
 class App:
     def __init__(self, master):
@@ -41,6 +41,25 @@ class App:
         # Add column weights to center the label and the button
         master.columnconfigure(0, weight=1)
         master.columnconfigure(3, weight=1)
+
+    def validate_passphrase(self, passphrase):
+        # Check length
+        if len(passphrase) < 8:
+            return False
+        # Check for uppercase letter
+        if not any(char.isupper() for char in passphrase):
+            return False
+        # Check for lowercase letter
+        if not any(char.islower() for char in passphrase):
+            return False
+        # Check for number
+        if not any(char.isdigit() for char in passphrase):
+            return False
+        # Check for special character
+        special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>/?"
+        if not any(char in special_chars for char in passphrase):
+            return False
+        return True
 
     def connect_otp(self, passphrase):
         hash_object = hashlib.sha256(passphrase.encode('utf-8'))
@@ -81,9 +100,9 @@ class App:
                 messagebox.showerror("Error", "Incorrect OTP, please try again.")
 
     def load_failed_attempts(self):
-        if os.path.exists(POOKI):
+        if os.path.exists(PICKLE):
             try:
-                with open(POOKI, "rb") as f:
+                with open(PICKLE, "rb") as f:
                     return pickle.load(f)
             except Exception as e:
                 messagebox.showerror("Error", f"Unable to load failed attempts: {str(e)}")
@@ -93,7 +112,7 @@ class App:
 
     def save_failed_attempts(self):
         try:
-            with open(POOKI, "wb") as f:
+            with open(PICKLE, "wb") as f:
                 pickle.dump(self.failed_attempts, f)
         except Exception as e:
             messagebox.showerror("Error", f"Unable to save failed attempts: {str(e)}")
@@ -244,6 +263,10 @@ class App:
             passphrase = self.entry_passphrase.get()
             if not passphrase:
                 messagebox.showerror("Error", "Please enter a passphrase.")
+                return
+            # Check if passphrase meet password complexity requirement
+            if not self.validate_passphrase(passphrase):
+                messagebox.showerror("Error", "Invalid passphrase. Please make sure your passphrase meets the following requirements:\n- At least 8 characters long\n- Contains at least one uppercase letter\n- Contains at least one lowercase letter\n- Contains at least one number\n- Contains at least one special character from the following list: !@#$%^&*()_+-=[]{}|;:,.<>/? ")
                 return
 
             self.connect_otp(passphrase)
