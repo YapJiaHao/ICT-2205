@@ -369,25 +369,30 @@ class App:
 
     def send_file(self):
         filename = os.path.basename(self.file_name.get())
+
         conn = self.conn
         # Check for encryption (if salt exists)
-        salt_file = self.salt
-        if not os.path.exists(salt_file):
-            self.encrypt(filename)
+   
+        salt_file_check = self.check_encryption()
 
-        with open(filename, 'rb') as f:
+        if os.path.isfile(salt_file_check) == False:
+            self.encrypt(self.file_name.get())
+    
+        with open(self.file_name.get(), 'rb') as f:
             conn.sendall("SEND_FILE".encode())
             filename_size = str(len(filename)).ljust(1024)
             conn.sendall(filename_size.encode())
             conn.sendall(filename.encode())
             while True:
                 filedata = f.read(1024)
-                if not filedata:
+                if not filedata: 
                     conn.sendall("END_OF_FILE".encode())
                     break
                 conn.sendall(filedata)
                 f.flush()
             print("PersonA: File sent to PersonB")
+
+        salt_file = self.check_encryption()
 
         with open(salt_file, 'rb') as f:
             conn.sendall("SEND_FILE".encode())
@@ -402,6 +407,7 @@ class App:
                 conn.sendall(filedata)
                 f.flush()
             print("PersonA: File sent to PersonB")
+
 
 root = tk.Tk()
 root.geometry("500x400")

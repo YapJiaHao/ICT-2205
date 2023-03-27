@@ -19,6 +19,7 @@ class App:
     def __init__(self, master):
         self.file_name = tk.StringVar()
         self.pass_phrase = tk.StringVar()
+        self.ip_target = tk.StringVar()
         self.master = master
         master.title("File Encryption/Decryption")
         self.failed_attempts = self.load_failed_attempts()
@@ -244,8 +245,45 @@ class App:
             self.encrypt_button = tk.Button(self.master, text="Lock/Unlock", command=self.start_encrypt)
             self.encrypt_button.grid(row=3,column=1, columnspan=2, padx=5, pady=5, sticky="WE")
 
+            self.send_ip_label = tk.Label(self.master, text="Target IP: ")
+            self.send_ip_label.grid(row=5, column=1, padx=5, pady=5, sticky="E")
+
+            self.ip_entry = tk.Entry(self.master)
+            self.ip_entry.grid(row=5, column=2, padx=5, pady=5, sticky="W")
+            self.ip_target.set(self.ip_entry.get())
+
+            self.send_ip = tk.Button(self.master, text="Send")
+            self.send_ip.grid(row=6,column=1, columnspan=2, padx=5, pady=5, sticky="WE")
+
+            print(self.file_name.get())
+
         except Exception as e:
             messagebox.showerror("Error", "EXECUTE: Unable to process file. " + str(e))
+
+    def check_encryption(self):
+        filename = self.file_name.get()
+        try:
+            sha256_hash = hashlib.sha256()
+            with open(filename, "rb") as f:
+                for byte_block in iter(lambda: f.read(4096),b""):
+                    sha256_hash.update(byte_block)
+            filesha = sha256_hash.hexdigest()
+            creTime = os.path.getctime(filename)
+            creDate = str(int((datetime.datetime.fromtimestamp(creTime) - datetime.datetime(1970, 1, 1)).total_seconds()))
+            filesha = filesha + creDate + SECKEY
+            filesha = hashlib.sha256(filesha.encode('utf-8'))
+            filesha = filesha.hexdigest()
+
+            filepath = os.path.join("res\\", filesha.upper())
+
+            return filepath
+        
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Select a valid file")
+        except Exception as e:
+            messagebox.showerror("Error", "START_ENCRYPT: Unable to process file. " + str(e))
+
+
 
     def file_open_encryption(self):
         # Open folder to select file
@@ -288,3 +326,4 @@ root.geometry("500x400")
 app = App(root)
 root.protocol("WM_DELETE_WINDOW", root.quit) # Add this line to stop the system after closing the program
 root.mainloop()
+
