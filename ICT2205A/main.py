@@ -350,7 +350,7 @@ class App:
         while True:
             data = conn.recv(1024).decode()
             if data == "SEND_FILE":
-                filename_size = int(s.recv(1024).decode())
+                filename_size = int(conn.recv(1024).decode())
                 filename = conn.recv(filename_size).decode()
                 base, ext = os.path.splitext(filename)
                 if ext:

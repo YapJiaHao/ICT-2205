@@ -20,7 +20,7 @@ def receive_file():
                 folder_name = ""
             else:
                 folder_name = "res"
-            with open(os.path.join(folder_name, filename), 'wb') as f:
+            with open(os.path.join(filename), 'wb') as f:
                 while True:
                     filedata = s.recv(1024)
                     if filedata.endswith(b"END_OF_FILE"):
